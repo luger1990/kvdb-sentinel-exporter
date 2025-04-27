@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KVDB Sentinel Exporter{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            padding-top: 56px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            font-weight: 600;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            text-align: center;
+        }
+        .bg-master {
+            background-color: #28a745;
+            color: white;
+        }
+        .bg-slave {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .node-info {
+            border-left: 3px solid #343a40;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+        .metrics-card {
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .metrics-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .metrics-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        @media screen and (min-width: 2000px) {
+            .container {
+                max-width: 80%;
+            }
+        }
+        @media screen and (min-width: 1800px) {
+            .container {
+                max-width: 80%;
+            }
+        }
+        @media screen and (min-width: 1600px) {
+            .container {
+                max-width: 80%;
+            }
+        }
+        @media screen and (min-width: 1200px) {
+            .container {
+                max-width: 80%;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fa fa-database mr-1"></i> KVDB Sentinel Exporter</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/" title="首页"><i class="fa fa-home"></i> 首页</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main role="main" class="container mt-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="container">
+        <p>KVDB Sentinel Exporter &copy; {% block current_year %}{{ current_year }}{% endblock %}</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 格式化字节数为人类可读格式
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

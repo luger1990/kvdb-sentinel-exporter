@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}KVDB Sentinel Exporter - 错误{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4 text-danger">
+        <i class="fa fa-exclamation-triangle mr-2"></i>出错了！
+    </h1>
+    <p class="lead">处理您的请求时发生错误。</p>
+    <hr class="my-4">
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    <a class="btn btn-primary" href="/" role="button">
+        <i class="fa fa-home mr-1"></i>返回首页
+    </a>
+</div>
+{% endblock %} 

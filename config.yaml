@@ -1,0 +1,41 @@
+# KVDB Sentinel Exporter 配置文件
+
+# Redis哨兵配置
+sentinels:
+  # 第一个哨兵组
+  redis-group-1:
+    # 本组Redis默认密码（可选，当master没有单独指定密码时使用此密码）
+    default_password: "ce67a0a422243742573ac12024c39f82"
+    sentinel_hosts:
+      - "127.0.0.1:26379"
+      - "127.0.0.1:26380"
+      - "127.0.0.1:26391"
+    # 为特定master_name指定密码配置（会覆盖默认密码）
+    master_groups:
+      # 示例：为特定master_name设置专用密码
+      kvrocks-group-1:
+        password: "cfc44dfc4f1a3f36400740680fd8c30c"
+      # 注意：未在此处列出的master_name将使用default_password
+  
+  # 第二个哨兵组
+  redis-group-2:
+    # 本组Redis默认密码（可选）
+    default_password: ""
+    sentinel_hosts:
+      - "127.0.0.1:16379"
+      - "127.0.0.1:16380"
+      - "127.0.0.1:16391"
+
+# 指标收集配置
+metrics:
+  # 收集线程池大小
+  thread_pool_size: 10
+  # 连接超时时间（秒）
+  connect_timeout: 3
+  # 读取超时时间（秒）
+  read_timeout: 5
+
+# Web UI配置
+web_ui:
+  # 刷新间隔（秒）
+  refresh_interval: 30 
