@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}KVDB Sentinel Exporter - 服务器错误{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4 text-danger">
+        <i class="fa fa-exclamation-circle mr-2"></i>500 - 服务器错误
+    </h1>
+    <p class="lead">服务器处理您的请求时发生内部错误。</p>
+    <hr class="my-4">
+    <p>请稍后重试，或联系系统管理员。</p>
+    <a class="btn btn-primary" href="/" role="button">
+        <i class="fa fa-home mr-1"></i>返回首页
+    </a>
+</div>
+{% endblock %} 

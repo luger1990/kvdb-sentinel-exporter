@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}KVDB Sentinel Exporter - 首页{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">KVDB Sentinel Exporter</h1>
+    <p class="lead">用于监控Redis Sentinel集群的Prometheus Exporter和Web界面</p>
+    <hr class="my-4">
+    <p>选择一个Redis Sentinel组以查看详细信息</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fa fa-list-alt mr-1"></i> 可用的Redis Sentinel组
+            </div>
+            <div class="card-body">
+                {% if sentinel_names %}
+                <div class="row">
+                    {% for sentinel_name in sentinel_names %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">{{ sentinel_name }}</h5>
+                                <div class="mt-3">
+                                    <a href="/{{ sentinel_name }}/info" class="btn btn-sm btn-primary mr-2">
+                                        <i class="fa fa-info-circle"></i> 详细信息
+                                    </a>
+                                    <a href="/{{ sentinel_name }}/metrics" class="btn btn-sm btn-secondary">
+                                        <i class="fa fa-bar-chart"></i> Metrics
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-triangle mr-1"></i> 未配置任何Redis Sentinel组。请检查配置文件。
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="fa fa-cogs mr-1"></i> Prometheus配置
+            </div>
+            <div class="card-body">
+                <p>要在Prometheus中配置此Exporter，请添加以下作业到您的<code>prometheus.yml</code>配置文件：</p>
+                <pre class="bg-light p-3"><code>scrape_configs:
+  - job_name: 'redis_sentinel'
+    scrape_interval: 15s
+    metrics_path: '/&lt;sentinel_name&gt;/metrics'
+    static_configs:
+      - targets: ['localhost:16379']</code></pre>
+                <p class="mb-0 text-muted">注意：请将<code>&lt;sentinel_name&gt;</code>替换为您的Sentinel组名称，如{% if sentinel_names %}"{{ sentinel_names[0] }}"{% else %}"production"{% endif %}。</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fa fa-question-circle mr-1"></i> 帮助信息
+            </div>
+            <div class="card-body">
+                <h5>功能列表：</h5>
+                <ul>
+                    <li>提供Redis主从节点的Prometheus指标</li>
+                    <li>支持多个Sentinel组配置</li>
+                    <li>支持针对特定主节点的密码配置</li>
+                    <li>Web界面显示Redis节点状态和性能指标</li>
+                </ul>
+                <p>每个Sentinel组都有两个主要端点：</p>
+                <ul>
+                    <li><code>/&lt;sentinel_name&gt;/metrics</code> - Prometheus指标</li>
+                    <li><code>/&lt;sentinel_name&gt;/info</code> - Web界面显示节点详情</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block current_year %}
+{{ super() }}
+{% endblock %} 
