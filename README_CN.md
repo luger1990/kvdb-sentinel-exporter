@@ -212,4 +212,4 @@ scrape_configs:
 
 ## 许可证
 
-MIT 
+[MIT](https://github.com/luger1990/kvdb-sentinel-exporter/blob/main/LICENSE)  

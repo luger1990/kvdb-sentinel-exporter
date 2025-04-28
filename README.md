@@ -213,4 +213,4 @@ Monitored file extensions include:
 
 ## License
 
-MIT 
+[MIT](https://github.com/luger1990/kvdb-sentinel-exporter/blob/main/LICENSE) 
