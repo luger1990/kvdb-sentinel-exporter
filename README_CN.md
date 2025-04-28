@@ -13,6 +13,20 @@ KVDB Sentinel Exporter是一个基于Python和Flask的工具，用于监控Redis
 - 多线程并行收集Redis节点指标
 - 支持监控KVRocks和Redis多种引擎
 
+## 截图
+
+### 首页
+
+![首页](docs/images/index.png)
+
+### 详情页
+
+![详情页](docs/images/info.png)
+
+### Grafana指标展示页
+
+![Grafana指标展示页](docs/images/grafana.png)
+
 ## 安装
 
 ### 依赖项
