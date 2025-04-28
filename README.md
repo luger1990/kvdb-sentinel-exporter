@@ -2,7 +2,7 @@
 
 KVDB Sentinel Exporter is a Python and Flask-based tool for monitoring Redis Sentinel clusters, providing Prometheus metrics and a web interface.
 
-[中文文档](README_CN.md)
+[中文文档](https://github.com/luger1990/kvdb-sentinel-exporter/blob/main/README_CN.md)
 
 ## Features
 
@@ -17,15 +17,15 @@ KVDB Sentinel Exporter is a Python and Flask-based tool for monitoring Redis Sen
 
 ### Index Page
 
-![Index Page](docs/images/index.png)
+![Index Page](https://github.com/luger1990/kvdb-sentinel-exporter/raw/main/docs/images/index.png)
 
 ### Info Page
 
-![Info Page](docs/images/info.png)
+![Info Page](https://github.com/luger1990/kvdb-sentinel-exporter/raw/main/docs/images/info.png)
 
 ### Grafana Metrics Page
 
-![Grafana Metrics Page](docs/images/grafana.png)
+![Grafana Metrics Page](https://github.com/luger1990/kvdb-sentinel-exporter/raw/main/docs/images/grafana.png)
 
 
 ## Installation
