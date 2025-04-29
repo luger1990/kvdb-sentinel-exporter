@@ -3,7 +3,7 @@
 # Redis哨兵配置
 sentinels:
   # 第一个哨兵组
-  redis-group-1:
+  redis-sentinel-group-1:
     # 本组Redis默认密码（可选，当master没有单独指定密码时使用此密码）
     default_password: "ce67a0a422243742573ac12024c39f82"
     sentinel_hosts:
@@ -18,7 +18,7 @@ sentinels:
       # 注意：未在此处列出的master_name将使用default_password
   
   # 第二个哨兵组
-  redis-group-2:
+  redis-sentinel-group-2:
     # 本组Redis默认密码（可选）
     default_password: ""
     sentinel_hosts:
