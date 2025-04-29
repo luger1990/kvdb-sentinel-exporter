@@ -28,7 +28,7 @@ def metrics(sentinel_name):
         redis_info = sentinel.collect_all_redis_info()
         
         # 收集Prometheus指标
-        metrics_collector.collect_metrics(redis_info)
+        metrics_collector.collect_metrics(redis_info, sentinel_name)
         
         # 返回指标数据
         return Response(metrics_collector.get_metrics(), 
