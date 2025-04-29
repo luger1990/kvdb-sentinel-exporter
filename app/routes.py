@@ -124,18 +124,11 @@ def info_data(sentinel_name):
                     slaves[master_name] = []
                 slaves[master_name].append(node_data)
         
-        # 将masters字典按照端口号排序
-        print(masters.keys())
-        print(sorted(masters.keys(), key=lambda x: int(x.split('-')[-1]) if x.split('-')[-1].isdigit() else 0))
-        
         # 使用有序字典保持顺序
         sorted_masters = OrderedDict()
         for master_name in sorted(masters.keys(), key=lambda x: int(x.split('-')[-1]) if x.split('-')[-1].isdigit() else 0):
             sorted_masters[master_name] = masters[master_name]
-        
-        print('--------------------------------')
-        print(sorted_masters)
-        
+
         # 创建新的nodes数组结构，每个主节点包含对应的从节点
         nodes = []
         

@@ -1,3 +1,4 @@
+import logging
 import os
 import yaml
 
@@ -19,7 +20,7 @@ class Config:
                 if os.path.exists(path):
                     with open(path, 'r', encoding='utf-8') as f:
                         cls._config = yaml.safe_load(f)
-                    print(f"成功从 {path} 加载配置")
+                    logging.info(f"成功从 {path} 加载配置")
                     break
             
             if cls._config is None:
