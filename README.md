@@ -6,7 +6,7 @@ KVDB Sentinel Exporter is a Python and Flask-based tool for monitoring Redis Sen
 
 [中文文档](https://github.com/luger1990/kvdb-sentinel-exporter/blob/main/README_CN.md)
 
-[Preview](https://kvdb.luger.me/)
+[Dashboard Preview](https://kvdb.luger.me/)
 
 ## Features
 
