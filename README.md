@@ -64,7 +64,30 @@ docker pull luger1990/kvdb-sentinel-exporter
 docker build -t kvdb-sentinel-exporter .
 
 # Run container
-docker run -d -p 16379:16379 -v $(pwd)/config.yaml:/app/config.yaml kvdb-sentinel-exporter
+docker run -dit \
+  -p 16379:16379 \
+  --name=kvdb-sentinel-exporter \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  luger1990/kvdb-sentinel-exporter
+  
+# Environment variables supported by Docker
+docker run -dit \
+  -p 16379:16379 \
+  --name=kvdb-sentinel-exporter \
+  -e DEBUG=true \
+  -e HOST=127.0.0.1 \
+  -e PORT=6379 \
+  -e CONFIG_PATH=/app/config/config.yaml \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  luger1990/kvdb-sentinel-exporter
+
+# It is recommended to run in Docker Host mode
+docker run -dit \
+  --net=host \
+  --name=kvdb-sentinel-exporter \
+  -e DEBUG=false \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  luger1990/kvdb-sentinel-exporter
 ```
 
 ## Configuration

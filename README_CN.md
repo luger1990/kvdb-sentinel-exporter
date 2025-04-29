@@ -57,14 +57,40 @@ cp config.yaml config.local.yaml  # 根据需要修改配置
 
 ```bash
 # 使用预构建镜像
-docker pull yourusername/kvdb-sentinel-exporter
+docker pull luger1990/kvdb-sentinel-exporter
 
 # 或者从Dockerfile构建
 docker build -t kvdb-sentinel-exporter .
 
 # 运行容器
-docker run -d -p 16379:16379 -v $(pwd)/config.yaml:/app/config.yaml kvdb-sentinel-exporter
+docker run -dit \
+  -p 16379:16379 \
+  --name=kvdb-sentinel-exporter \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  luger1990/kvdb-sentinel-exporter
+  
+# Docker支持的环境变量
+docker run -dit \
+  -p 16379:16379 \
+  --name=kvdb-sentinel-exporter \
+  -e DEBUG=true \
+  -e HOST=127.0.0.1 \
+  -e PORT=6379 \
+  -e CONFIG_PATH=/app/config/config.yaml \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  luger1990/kvdb-sentinel-exporter
+
+# 推荐使用Docker Host模式运行
+docker run -dit \
+  --net=host \
+  --name=kvdb-sentinel-exporter \
+  -e DEBUG=false \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  luger1990/kvdb-sentinel-exporter
 ```
+
+
+
 
 ## 配置
 
