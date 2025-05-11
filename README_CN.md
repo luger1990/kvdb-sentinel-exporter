@@ -6,7 +6,7 @@ KVDB Sentinel Exporter是一个基于Python和Flask的工具，用于监控Redis
 
 [English Documentation](https://github.com/luger1990/kvdb-sentinel-exporter/blob/main/README.md) 
 
-[管理平台预览地址](https://kvdb.luger.me/)
+[管理平台预览地址](https://kvdb.luger.me/)   [Grafana Dashboard](https://grafana.com/grafana/dashboards/23358-kvdb-redis-kvrocks/)
 
 ## 功能特点
 
