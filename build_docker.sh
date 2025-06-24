@@ -18,6 +18,15 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# 确认是否推送镜像
+read -p "❓ Do you want to push the image '${IMAGE_NAME}:${TAG}' and 'latest'? [Y/n]: " confirm
+confirm=${confirm:-n}
+
+if [[ "$confirm" != [Yy] ]]; then
+  echo "❌ Push aborted by user."
+  exit 0
+fi
+
 # 推送指定版本
 echo "📦 Pushing image ${IMAGE_NAME}:${TAG}..."
 docker push ${IMAGE_NAME}:${TAG}

@@ -204,6 +204,9 @@ def nodes(sentinel_name):
     except Exception as e:
         logging.error(f"获取节点信息失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
+@bp.route('/api/health', methods=['GET'])
+def health_check():
+    return Response("health", status=200, mimetype='text/plain')
 
 @bp.errorhandler(404)
 def page_not_found(e):
