@@ -64,6 +64,8 @@ class RedisMetricsCollector:
                                                 registry=self.registry)
         self.master_repl_offset = Gauge('kvdb_master_repl_offset', '主节点复制偏移量',
                                         ['db_instance', 'group_name', 'role', 'sentinel_name'], registry=self.registry)
+        self.master_link_status = Gauge('kvdb_master_link_status', 'master主从状态',
+                                        ['db_instance', 'group_name', 'role', 'sentinel_name'], registry=self.registry)
         self.instantaneous_ops_per_sec = Gauge('kvdb_instantaneous_ops_per_sec', '当前每秒执行的命令数',
                                                ['db_instance', 'group_name', 'role', 'sentinel_name'],
                                                registry=self.registry)
@@ -231,7 +233,13 @@ class RedisMetricsCollector:
             if 'master_repl_offset' in info:
                 self.master_repl_offset.labels(db_instance=instance, group_name=master_name, role=role,
                                                sentinel_name=sentinel_name).set(
-                    info['master_repl_offset'])
+                    1 if info['master_repl_offset'] == 'up' else 0)
+
+            # 主从状态
+            if 'master_link_status' in info:
+                self.master_link_status.labels(db_instance=instance, group_name=master_name, role=role,
+                                               sentinel_name=sentinel_name).set(
+                    info['master_link_status'])
 
             # 每秒执行的操作数
             if 'instantaneous_ops_per_sec' in info:
