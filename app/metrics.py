@@ -232,14 +232,13 @@ class RedisMetricsCollector:
             # 复制偏移量
             if 'master_repl_offset' in info:
                 self.master_repl_offset.labels(db_instance=instance, group_name=master_name, role=role,
-                                               sentinel_name=sentinel_name).set(
-                    1 if info['master_repl_offset'] == 'up' else 0)
+                                               sentinel_name=sentinel_name).set(info['master_repl_offset'])
 
             # 主从状态
             if 'master_link_status' in info:
                 self.master_link_status.labels(db_instance=instance, group_name=master_name, role=role,
                                                sentinel_name=sentinel_name).set(
-                    info['master_link_status'])
+                    1 if info['master_link_status'] == 'up' else 0)
 
             # 每秒执行的操作数
             if 'instantaneous_ops_per_sec' in info:
