@@ -1,53 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS-01",
-      "label": "Prometheus-01",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "gauge",
-      "name": "Gauge",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "9.4.1"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -75,7 +26,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": 11835,
   "graphTooltip": 1,
-  "id": null,
+  "id": 194,
   "links": [
     {
       "asDropdown": false,
@@ -108,7 +59,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -147,6 +98,10 @@
               {
                 "id": "unit",
                 "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 101
               }
             ]
           },
@@ -175,6 +130,10 @@
                     "type": "value"
                   }
                 ]
+              },
+              {
+                "id": "custom.width",
+                "value": 80
               }
             ]
           },
@@ -187,6 +146,10 @@
               {
                 "id": "unit",
                 "value": "KiBs"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
               }
             ]
           },
@@ -199,6 +162,10 @@
               {
                 "id": "unit",
                 "value": "KiBs"
+              },
+              {
+                "id": "custom.width",
+                "value": 130
               }
             ]
           },
@@ -239,6 +206,142 @@
                     "type": "value"
                   }
                 ]
+              },
+              {
+                "id": "custom.width",
+                "value": 132
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DB SIZE"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "DISK USAGE"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Version"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 67
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used Memory"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 117
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Connected Clients"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 146
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Port"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 72
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "QPS"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 81
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server IN"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "KBs"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server OUT"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "KiBs"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Instance"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 173
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Group"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 253
               }
             ]
           }
@@ -263,8 +366,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": false,
-            "displayName": "GroupName"
+            "desc": true,
+            "displayName": "OUT"
           }
         ]
       },
@@ -273,11 +376,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name, db_instance, group_name)(kvdb_uptime_in_seconds{})",
+          "expr": "sum by (sentinel_name, db_instance, group_name, db_instance_ip)(kvdb_uptime_in_seconds{})",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -287,11 +390,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_version{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_version{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -302,11 +405,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_connected_clients{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_connected_clients{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -317,11 +420,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_port{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_port{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -332,11 +435,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_role{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_role{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -347,11 +450,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_instantaneous_ops_per_sec{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_instantaneous_ops_per_sec{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -362,11 +465,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_net_input_kbps{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_net_input_kbps{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -377,11 +480,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_net_output_kbps{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_net_output_kbps{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -392,11 +495,11 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_memory_used_bytes{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_memory_used_bytes{})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -407,17 +510,77 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (sentinel_name,db_instance, group_name)(kvdb_engine_type{})",
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_engine_type{})",
           "format": "table",
           "hide": false,
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
           "refId": "J"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_db_used_bytes{})",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "K"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "(sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_disk_used_bytes{})) / (sum by (sentinel_name,db_instance, group_name, db_instance_ip)(kvdb_disk_max_bytes{})) ",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "L"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (db_instance_ip) (kvdb_net_input_kbps)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "M"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (db_instance_ip) (kvdb_net_output_kbps)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "N"
         }
       ],
       "title": "Summarize",
@@ -434,17 +597,22 @@
             },
             "indexByName": {
               "Time": 0,
-              "Value #A": 6,
-              "Value #B": 7,
-              "Value #C": 9,
-              "Value #D": 10,
-              "Value #E": 5,
-              "Value #F": 11,
-              "Value #G": 12,
-              "Value #H": 13,
-              "Value #I": 8,
-              "Value #J": 4,
-              "db_instance": 3,
+              "Value #A": 7,
+              "Value #B": 8,
+              "Value #C": 10,
+              "Value #D": 11,
+              "Value #E": 6,
+              "Value #F": 12,
+              "Value #G": 13,
+              "Value #H": 14,
+              "Value #I": 9,
+              "Value #J": 5,
+              "Value #K": 15,
+              "Value #L": 16,
+              "Value #M": 17,
+              "Value #N": 18,
+              "db_instance": 4,
+              "db_instance_ip": 3,
               "group_name": 2,
               "sentinel_name": 1
             },
@@ -459,6 +627,10 @@
               "Value #H": "OUT",
               "Value #I": "Used Memory",
               "Value #J": "Engine Type",
+              "Value #K": "DB SIZE",
+              "Value #L": "DISK USAGE",
+              "Value #M": "Server IN",
+              "Value #N": "Server OUT",
               "db_instance": "Instance",
               "group_name": "Group",
               "sentinel_name": "Sentinel"
@@ -484,7 +656,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -549,7 +721,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "max(max_over_time(kvdb_uptime_in_seconds{db_instance=~\"$instance\"}[$__interval]))",
@@ -570,7 +742,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -623,7 +795,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_version{db_instance=~\"$instance\"}",
@@ -643,7 +815,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -712,7 +884,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_role{db_instance=~\"$instance\"}",
@@ -732,7 +904,96 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "blue",
+                  "index": 1,
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "Up"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 2,
+        "x": 6,
+        "y": 11
+      },
+      "hideTimeOverride": true,
+      "id": 29,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "kvdb_master_link_status{db_instance=~\"$instance\"}",
+          "format": "time_series",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "metric": "",
+          "range": true,
+          "refId": "A",
+          "step": 2
+        }
+      ],
+      "timeFrom": "1m",
+      "title": "Master Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -777,7 +1038,7 @@
       "gridPos": {
         "h": 8,
         "w": 4,
-        "x": 6,
+        "x": 8,
         "y": 11
       },
       "hideTimeOverride": true,
@@ -801,7 +1062,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "100 * (kvdb_memory_used_bytes{db_instance=~\"$instance\"}  / kvdb_memory_max_bytes{db_instance=~\"$instance\"} )",
@@ -821,7 +1082,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -879,8 +1140,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 14,
-        "x": 10,
+        "w": 11,
+        "x": 12,
         "y": 11
       },
       "id": 19,
@@ -902,7 +1163,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_instantaneous_ops_per_sec{db_instance=~\"$instance\"}",
@@ -919,7 +1180,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "rate(kvdb_commands_processed_total{db_instance=~\"$instance\"}[1m])",
@@ -935,7 +1196,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1001,7 +1262,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_connected_clients{db_instance=~\"$instance\"}",
@@ -1021,7 +1282,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1074,7 +1335,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_port{db_instance=~\"$instance\"}",
@@ -1094,7 +1355,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1175,7 +1436,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_net_input_kbps{db_instance=~\"$instance\"}",
@@ -1190,7 +1451,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_net_output_kbps{db_instance=~\"$instance\"}",
@@ -1209,7 +1470,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1290,7 +1551,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "rate(kvdb_net_input_bytes_total{db_instance=~\"$instance\"}[5m])",
@@ -1305,7 +1566,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "rate(kvdb_net_output_bytes_total{db_instance=~\"$instance\"}[5m])",
@@ -1324,7 +1585,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1418,7 +1679,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_memory_used_bytes{db_instance=~\"$instance\"} ",
@@ -1434,7 +1695,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_memory_max_bytes{db_instance=~\"$instance\"} ",
@@ -1453,7 +1714,271 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "log": 10,
+              "type": "log"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "max"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#BF1B00",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "id": 28,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "8.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "kvdb_db_used_bytes{db_instance=~\"$instance\"} ",
+          "format": "time_series",
+          "intervalFactor": 2,
+          "legendFormat": "db size",
+          "metric": "",
+          "range": true,
+          "refId": "A",
+          "step": 240,
+          "target": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "kvdb_disk_used_bytes{db_instance=~\"$instance\"} ",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 2,
+          "legendFormat": "disk used",
+          "range": true,
+          "refId": "B",
+          "step": 240
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "kvdb_disk_max_bytes{db_instance=~\"$instance\"} ",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 2,
+          "legendFormat": "disk max",
+          "range": true,
+          "refId": "C",
+          "step": 240
+        }
+      ],
+      "title": "Total Disk Usage[KVRocks]",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "AVCkMaX7z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "id": 5,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "sum (kvdb_db_keys{db_instance=~\"$instance\"}) by (db)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{ db }} - total",
+          "range": true,
+          "refId": "A",
+          "step": 240,
+          "target": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "sum (kvdb_db_keys_expiring{db_instance=~\"$instance\"}) by (db)",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{ db }} - expire",
+          "range": true,
+          "refId": "B",
+          "step": 240,
+          "target": ""
+        }
+      ],
+      "title": "Total Items per DB",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1509,7 +2034,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 33
       },
       "id": 14,
       "links": [],
@@ -1532,7 +2057,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -1554,242 +2079,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 70,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 33
-      },
-      "id": 5,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "9.4.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
-          },
-          "editorMode": "code",
-          "expr": "sum (kvdb_db_keys{db_instance=~\"$instance\"}) by (db)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "{{ db }} - total",
-          "range": true,
-          "refId": "A",
-          "step": 240,
-          "target": ""
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
-          },
-          "editorMode": "code",
-          "expr": "sum (kvdb_db_keys_expiring{db_instance=~\"$instance\"}) by (db)",
-          "format": "time_series",
-          "hide": false,
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "{{ db }} - expire",
-          "range": true,
-          "refId": "B",
-          "step": 240,
-          "target": ""
-        }
-      ],
-      "title": "Total Items per DB",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 70,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 33
-      },
-      "id": 13,
-      "links": [],
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "9.4.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
-          },
-          "editorMode": "code",
-          "expr": "sum (kvdb_db_keys{db_instance=~\"$instance\"}) - sum (kvdb_db_keys_expiring{db_instance=~\"$instance\"}) ",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "not expiring",
-          "range": true,
-          "refId": "A",
-          "step": 240,
-          "target": ""
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
-          },
-          "editorMode": "code",
-          "expr": "sum (kvdb_db_keys_expiring{db_instance=~\"$instance\"}) ",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "expiring",
-          "metric": "",
-          "range": true,
-          "refId": "B",
-          "step": 240
-        }
-      ],
-      "title": "Expiring vs Not-Expiring Keys",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS-01}"
+        "uid": "AVCkMaX7z"
       },
       "fieldConfig": {
         "defaults": {
@@ -1832,7 +2122,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1869,7 +2160,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -1885,7 +2176,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_max_clients{db_instance=\"$instance\"}",
@@ -1897,7 +2188,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS-01}"
+            "uid": "AVCkMaX7z"
           },
           "editorMode": "code",
           "expr": "kvdb_blocked_clients{db_instance=\"$instance\"}",
@@ -1908,6 +2199,123 @@
         }
       ],
       "title": "Redis connected clients",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "AVCkMaX7z"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 13,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "sum (kvdb_db_keys{db_instance=~\"$instance\"}) - sum (kvdb_db_keys_expiring{db_instance=~\"$instance\"}) ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "not expiring",
+          "range": true,
+          "refId": "A",
+          "step": 240,
+          "target": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "AVCkMaX7z"
+          },
+          "editorMode": "code",
+          "expr": "sum (kvdb_db_keys_expiring{db_instance=~\"$instance\"}) ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "expiring",
+          "metric": "",
+          "range": true,
+          "refId": "B",
+          "step": 240
+        }
+      ],
+      "title": "Expiring vs Not-Expiring Keys",
       "type": "timeseries"
     }
   ],
@@ -1923,10 +2331,14 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "nct-old",
+          "value": "nct-old"
+        },
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS-01}"
+          "uid": "AVCkMaX7z"
         },
         "definition": "label_values(kvdb_up{}, sentinel_name)",
         "hide": 0,
@@ -1949,10 +2361,14 @@
         "useTags": false
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "kvrocks-old-16391",
+          "value": "kvrocks-old-16391"
+        },
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS-01}"
+          "uid": "AVCkMaX7z"
         },
         "definition": "label_values(kvdb_up{sentinel_name=\"$sentinelName\"}, group_name)",
         "hide": 0,
@@ -1975,10 +2391,14 @@
         "useTags": false
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "192.168.100.170:16391",
+          "value": "192.168.100.170:16391"
+        },
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS-01}"
+          "uid": "AVCkMaX7z"
         },
         "definition": "label_values(kvdb_up{sentinel_name=\"$sentinelName\",group_name=\"$groupName\"}, db_instance)",
         "hide": 0,
@@ -2003,7 +2423,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {
@@ -2034,6 +2454,6 @@
   "timezone": "browser",
   "title": "KVDB(Redis/KVRocks)",
   "uid": "hhVJVeANz",
-  "version": 20,
+  "version": 24,
   "weekStart": ""
 }
