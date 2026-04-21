@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Terminal - {{ host }}:{{ port }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background: #101418;
+            color: #d6e2ea;
+        }
+
+        .terminal-page {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.55rem 0.85rem;
+            border-bottom: 1px solid #2d3842;
+            background: #182029;
+        }
+
+        .terminal-title {
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.9rem;
+            color: #f1f5f8;
+        }
+
+        .terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.85rem;
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.86rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.35rem;
+        }
+
+        .terminal-line.command {
+            color: #8bd5ff;
+        }
+
+        .terminal-line.error {
+            color: #ff9c9c;
+        }
+
+        .terminal-line.meta {
+            color: #9fb0bf;
+        }
+
+        .terminal-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 0.85rem;
+            border-top: 1px solid #2d3842;
+            background: #121922;
+        }
+
+        .terminal-prompt {
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            color: #59d499;
+            white-space: nowrap;
+        }
+
+        .terminal-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #344353;
+            border-radius: 4px;
+            background: #0c1117;
+            color: #f1f5f8;
+            padding: 0.42rem 0.55rem;
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.9rem;
+        }
+
+        .terminal-input:focus {
+            border-color: #4ba3ff;
+            outline: none;
+            box-shadow: 0 0 0 0.12rem rgba(75, 163, 255, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-page">
+        <div class="terminal-header">
+            <div class="terminal-title" id="terminal-title">
+                Redis Terminal - {{ host }}:{{ port }} ({{ role }}, {{ master_name }})
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-light mr-2" id="terminal-clear-btn" type="button">
+                    <i class="fa fa-trash-o mr-1"></i>清空
+                </button>
+                <button class="btn btn-sm btn-outline-light" id="terminal-focus-btn" type="button">
+                    <i class="fa fa-keyboard-o mr-1"></i>输入
+                </button>
+            </div>
+        </div>
+        <div class="terminal-output" id="terminal-output"></div>
+        <form class="terminal-input-row" id="terminal-form">
+            <span class="terminal-prompt" id="terminal-prompt">{{ host }}:{{ port }}&gt;</span>
+            <input class="terminal-input" id="terminal-input" type="text" autocomplete="off" spellcheck="false"
+                   placeholder='输入 Redis 命令，例如: INFO server 或 GET "key name"'>
+            <button class="btn btn-sm btn-primary" id="terminal-send-btn" type="submit">
+                <i class="fa fa-paper-plane mr-1"></i>发送
+            </button>
+        </form>
+    </div>
+
+    <script>
+        (function () {
+            const sentinelName = {{ sentinel_name|tojson }};
+            const target = {
+                host: {{ host|tojson }},
+                port: {{ port|tojson }},
+                masterName: {{ master_name|tojson }},
+                role: {{ role|tojson }}
+            };
+            const terminalOutput = document.getElementById('terminal-output');
+            const terminalForm = document.getElementById('terminal-form');
+            const terminalInput = document.getElementById('terminal-input');
+            const terminalPrompt = document.getElementById('terminal-prompt');
+            const terminalClearBtn = document.getElementById('terminal-clear-btn');
+            const terminalFocusBtn = document.getElementById('terminal-focus-btn');
+            let commandHistory = [];
+            let historyIndex = -1;
+
+            function scrollTerminalToBottom() {
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            function appendTerminalLine(text, className = '') {
+                const line = document.createElement('div');
+                line.className = `terminal-line ${className}`.trim();
+                line.textContent = text;
+                terminalOutput.appendChild(line);
+                scrollTerminalToBottom();
+            }
+
+            async function sendTerminalCommand(command) {
+                appendTerminalLine(`${terminalPrompt.textContent} ${command}`, 'command');
+                terminalInput.value = '';
+                terminalInput.disabled = true;
+
+                try {
+                    const response = await fetch(`/${encodeURIComponent(sentinelName)}/terminal/execute`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            host: target.host,
+                            port: target.port,
+                            master_name: target.masterName,
+                            command: command
+                        })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.ok) {
+                        appendTerminalLine(`ERR ${result.error || '命令执行失败'}`, 'error');
+                        return;
+                    }
+
+                    appendTerminalLine(result.output || '(empty)');
+                    appendTerminalLine(`(${result.duration_ms} ms${result.truncated ? ', truncated' : ''})`, 'meta');
+                } catch (error) {
+                    appendTerminalLine(`ERR ${error.message}`, 'error');
+                } finally {
+                    terminalInput.disabled = false;
+                    terminalInput.focus();
+                }
+            }
+
+            terminalForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const command = terminalInput.value.trim();
+                if (!command) {
+                    return;
+                }
+                commandHistory.push(command);
+                historyIndex = commandHistory.length;
+                sendTerminalCommand(command);
+            });
+
+            terminalInput.addEventListener('keydown', function (event) {
+                if (event.key === 'ArrowUp') {
+                    if (commandHistory.length === 0) {
+                        return;
+                    }
+                    event.preventDefault();
+                    historyIndex = Math.max(0, historyIndex - 1);
+                    terminalInput.value = commandHistory[historyIndex] || '';
+                } else if (event.key === 'ArrowDown') {
+                    if (commandHistory.length === 0) {
+                        return;
+                    }
+                    event.preventDefault();
+                    historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+                    terminalInput.value = commandHistory[historyIndex] || '';
+                }
+            });
+
+            terminalClearBtn.addEventListener('click', function () {
+                terminalOutput.innerHTML = '';
+                appendTerminalLine(`Connected to ${target.host}:${target.port}, master_name=${target.masterName}, role=${target.role}`, 'meta');
+                terminalInput.focus();
+            });
+
+            terminalFocusBtn.addEventListener('click', function () {
+                terminalInput.focus();
+            });
+
+            appendTerminalLine(`Connected to ${target.host}:${target.port}, master_name=${target.masterName}, role=${target.role}`, 'meta');
+            appendTerminalLine('输入 Redis 命令后按 Enter 发送。部分高风险命令会被后端拦截。', 'meta');
+            terminalInput.focus();
+        })();
+    </script>
+</body>
+</html>

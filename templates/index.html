@@ -25,10 +25,10 @@
                             <div class="card-body text-center">
                                 <h5 class="card-title">{{ sentinel_name }}</h5>
                                 <div class="mt-3">
-                                    <a href="/{{ sentinel_name }}/info" class="btn btn-sm btn-primary mr-2">
+                                    <a href="/{{ sentinel_name|urlencode }}/info" class="btn btn-sm btn-primary mr-2">
                                         <i class="fa fa-info-circle"></i> 详细信息
                                     </a>
-                                    <a href="/{{ sentinel_name }}/metrics" class="btn btn-sm btn-secondary">
+                                    <a href="/{{ sentinel_name|urlencode }}/metrics" class="btn btn-sm btn-secondary">
                                         <i class="fa fa-bar-chart"></i> Metrics
                                     </a>
                                 </div>

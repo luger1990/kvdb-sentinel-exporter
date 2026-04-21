@@ -149,6 +149,122 @@
         .hidden-group {
             display: none;
         }
+
+        .terminal-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 42vh;
+            min-height: 280px;
+            background: #101418;
+            color: #d6e2ea;
+            border-top: 1px solid #2d3842;
+            box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.25);
+            z-index: 1050;
+            display: none;
+            flex-direction: column;
+        }
+
+        .terminal-panel.active {
+            display: flex;
+        }
+
+        .terminal-panel.fullscreen {
+            top: 0;
+            height: 100vh;
+            min-height: 0;
+            border-top: 0;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0.75rem;
+            border-bottom: 1px solid #2d3842;
+            background: #182029;
+        }
+
+        .terminal-title {
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.85rem;
+            color: #f1f5f8;
+        }
+
+        .terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.35rem;
+        }
+
+        .terminal-line.command {
+            color: #8bd5ff;
+        }
+
+        .terminal-line.error {
+            color: #ff9c9c;
+        }
+
+        .terminal-line.meta {
+            color: #9fb0bf;
+        }
+
+        .terminal-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            border-top: 1px solid #2d3842;
+            background: #121922;
+        }
+
+        .terminal-prompt {
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            color: #59d499;
+            white-space: nowrap;
+        }
+
+        .terminal-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #344353;
+            border-radius: 4px;
+            background: #0c1117;
+            color: #f1f5f8;
+            padding: 0.4rem 0.55rem;
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.88rem;
+        }
+
+        .terminal-input:focus {
+            border-color: #4ba3ff;
+            outline: none;
+            box-shadow: 0 0 0 0.12rem rgba(75, 163, 255, 0.25);
+        }
+
+        .terminal-spacer {
+            height: 42vh;
+            min-height: 280px;
+            display: none;
+        }
+
+        .terminal-spacer.active {
+            display: block;
+        }
+
+        .terminal-spacer.fullscreen {
+            display: none;
+        }
     </style>
 {% endblock %}
 
@@ -171,7 +287,7 @@
             <div class="alert alert-info py-2">
                 <i class="fa fa-info-circle mr-2"></i>
                 点击"开启自动刷新"后，页面将每 <strong>{{ refresh_interval }}</strong> 秒自动刷新一次。
-                <a href="/{{ sentinel_name }}/metrics" class="alert-link ml-2" target="_blank">
+                <a href="/{{ sentinel_name|urlencode }}/metrics" class="alert-link ml-2" target="_blank">
                     <i class="fa fa-external-link"></i> 查看Prometheus指标
                 </a>
             </div>
@@ -203,14 +319,45 @@
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="spinner-border text-primary" role="status"></div>
     </div>
+
+    <div id="terminal-spacer" class="terminal-spacer"></div>
+
+    <div id="terminal-panel" class="terminal-panel" aria-live="polite">
+        <div class="terminal-header">
+            <div class="terminal-title" id="terminal-title">Redis Terminal</div>
+            <div>
+                <button class="btn btn-sm btn-outline-light mr-2" id="terminal-new-window-btn" type="button">
+                    <i class="fa fa-external-link mr-1"></i>新窗口
+                </button>
+                <button class="btn btn-sm btn-outline-light mr-2" id="terminal-fullscreen-btn" type="button">
+                    <i class="fa fa-expand mr-1"></i>全屏
+                </button>
+                <button class="btn btn-sm btn-outline-light mr-2" id="terminal-clear-btn" type="button">
+                    <i class="fa fa-trash-o mr-1"></i>清空
+                </button>
+                <button class="btn btn-sm btn-outline-light" id="terminal-close-btn" type="button">
+                    <i class="fa fa-times mr-1"></i>关闭
+                </button>
+            </div>
+        </div>
+        <div class="terminal-output" id="terminal-output"></div>
+        <form class="terminal-input-row" id="terminal-form">
+            <span class="terminal-prompt" id="terminal-prompt">redis&gt;</span>
+            <input class="terminal-input" id="terminal-input" type="text" autocomplete="off" spellcheck="false"
+                   placeholder='输入 Redis 命令，例如: INFO server 或 GET "key name"'>
+            <button class="btn btn-sm btn-primary" id="terminal-send-btn" type="submit">
+                <i class="fa fa-paper-plane mr-1"></i>发送
+            </button>
+        </form>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         // Redis节点数据管理和UI更新
         (function () {
-            const sentinelName = "{{ sentinel_name }}";
-            const refreshInterval = {{ refresh_interval }} * 1000;  // 转换为毫秒
+            const sentinelName = {{ sentinel_name|tojson }};
+            const refreshInterval = {{ refresh_interval|tojson }} * 1000;  // 转换为毫秒
             let lastRefreshTime = new Date();
             const refreshTimestampEl = document.getElementById('last-refresh');
             const refreshBtn = document.getElementById('refresh-btn');
@@ -219,22 +366,51 @@
             const nodesContainer = document.getElementById('redis-nodes-container');
             const searchInput = document.getElementById('node-search');
             const searchClear = document.getElementById('search-clear');
+            const terminalPanel = document.getElementById('terminal-panel');
+            const terminalSpacer = document.getElementById('terminal-spacer');
+            const terminalTitle = document.getElementById('terminal-title');
+            const terminalOutput = document.getElementById('terminal-output');
+            const terminalForm = document.getElementById('terminal-form');
+            const terminalInput = document.getElementById('terminal-input');
+            const terminalPrompt = document.getElementById('terminal-prompt');
+            const terminalCloseBtn = document.getElementById('terminal-close-btn');
+            const terminalClearBtn = document.getElementById('terminal-clear-btn');
+            const terminalFullscreenBtn = document.getElementById('terminal-fullscreen-btn');
+            const terminalNewWindowBtn = document.getElementById('terminal-new-window-btn');
 
             let isAutoRefreshEnabled = false; // 默认不自动刷新
             let refreshTimer = null;
             let isFirstLoad = true;
             let allMasterGroups = []; // 存储所有主节点组数据
+            let terminalTarget = null;
+            let isTerminalFullscreen = false;
+            let commandHistory = [];
+            let historyIndex = -1;
 
             // 初始化数据加载
             fetchData();
 
             // 格式化字节为可读单位
             function formatBytes(bytes) {
+                bytes = Number(bytes) || 0;
                 const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
                 if (bytes === 0) return '0 B';
                 const i = Math.floor(Math.log(bytes) / Math.log(1024));
                 const value = bytes / Math.pow(1024, i);
                 return `${value.toFixed(2)} ${sizes[i]}`;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function escapeAttr(value) {
+                return escapeHtml(value).replace(/\s+/g, '-');
             }
 
             // 更新最后刷新时间显示
@@ -257,7 +433,7 @@
                     loadingOverlay.style.display = 'flex';
                 }
 
-                fetch(`/${sentinelName}/info/data`)
+                fetch(`/${encodeURIComponent(sentinelName)}/info/data`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('网络响应错误');
@@ -332,13 +508,14 @@
                 // 循环渲染每个主节点组
                 for (const masterName of sortedMasterNames) {
                     const masterNodes = nodeGroups[masterName];
+                    const safeMasterName = escapeHtml(masterName);
                     html += `
-                        <div class="master-group-container" data-master-name="${masterName}">
+                        <div class="master-group-container" data-master-name="${escapeAttr(masterName)}">
                             <div class="card mb-3">
                                 <div class="card-header py-2 bg-master">
                                     <h5 class="mb-0">
                                         <i class="fa fa-star mr-1"></i>
-                                        主节点组: ${masterName}
+                                        主节点组: ${safeMasterName}
                                     </h5>
                                 </div>
                                 <div class="card-body p-0">
@@ -354,6 +531,7 @@
                                                     <th>内存/存储</th>
                                                     <th>版本</th>
                                                     <th>运行时间</th>
+                                                    <th>操作</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -398,6 +576,11 @@
                 const isKvrocks = nodeType === 2;
                 const isPika = nodeType === 3;
                 let memoryPercent = 0;
+                const nodeId = `${node.host}:${node.port}`;
+                const safeNodeId = escapeHtml(nodeId);
+                const attrNodeId = escapeAttr(nodeId);
+                const safeVersion = escapeHtml(node.version);
+                const safeError = escapeHtml(node.error || '');
 
                 if (nodeType === 1 && node.used_memory && node.maxmemory > 0) {
                     memoryPercent = (node.used_memory / node.maxmemory) * 100;
@@ -423,12 +606,13 @@
 
                 // 将新节点HTML添加到现有内容
                 let newHtml = htmlContent + `
-                    <tr data-node-id="${node.host}:${node.port}">
+                    <tr data-node-id="${attrNodeId}">
                         <td>
-                            <span class="health-status health-good"
-                                  id="health-${node.host}-${node.port}"></span>
-                            <strong>${node.host}:${node.port}</strong>
+                            <span class="health-status ${node.up === 0 ? 'health-critical' : 'health-good'}"
+                                  id="health-${attrNodeId}"></span>
+                            <strong>${safeNodeId}</strong>
                             <span class="engine-type ${engineTypeClass}">${engineTypeName}</span>
+                            ${node.up === 0 ? `<div class="text-danger small">${safeError}</div>` : ''}
                         </td>
                         <td style="width: 10%">
                             ${role === 'master'
@@ -438,13 +622,13 @@
                         </td>
                         <td class="text-center" style="width: 10%">
                             <span class="compact-value"
-                                  id="qps-${node.host}-${node.port}">${node.instantaneous_ops_per_sec}</span>
+                                  id="qps-${attrNodeId}">${escapeHtml(node.instantaneous_ops_per_sec)}</span>
                         </td>
                         <td class="text-center" style="width: 10%">
-                            <span class="compact-value">${node.connected_clients}</span>
+                            <span class="compact-value">${escapeHtml(node.connected_clients)}</span>
                         </td>
                         <td class="text-center" style="width: 10%">
-                            <span class="compact-value">${node.total_keys}</span>
+                            <span class="compact-value">${escapeHtml(node.total_keys)}</span>
                         </td>
                         <td style="width: 15%">
                 `;
@@ -458,9 +642,9 @@
                                      style="width: ${memoryPercent}%"></div>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span class="memory-text">${node.used_memory_human} / ${node.total_system_memory_human}</span>
+                                <span class="memory-text">${escapeHtml(node.used_memory_human)} / ${escapeHtml(node.total_system_memory_human)}</span>
                                 <span class="memory-text"
-                                      id="memory-percent-${node.host}-${node.port}">${memoryPercent.toFixed(1)}%</span>
+                                      id="memory-percent-${attrNodeId}">${memoryPercent.toFixed(1)}%</span>
                             </div>
                         </div>
                     `;
@@ -478,7 +662,7 @@
                             <div class="d-flex justify-content-between">
                                 <span class="memory-text">${formatBytes(node.used_disk_size)} / ${formatBytes(node.disk_capacity)}</span>
                                 <span class="memory-text"
-                                      id="memory-percent-${node.host}-${node.port}">${memoryPercent.toFixed(1)}%</span>
+                                      id="memory-percent-${attrNodeId}">${memoryPercent.toFixed(1)}%</span>
                             </div>
                         </div>
                     `;
@@ -489,15 +673,121 @@
                 newHtml += `
                         </td>
                         <td class="text-center" style="width: 10%">
-                            ${node.version}
+                            ${safeVersion}
                         </td>
                         <td class="text-center" style="width: 10%">
-                            ${node.uptime_in_days} 天
+                            ${escapeHtml(node.uptime_in_days)} 天
+                        </td>
+                        <td class="text-center" style="width: 8%">
+                            <button class="btn btn-sm btn-outline-dark redis-connect-btn"
+                                    type="button"
+                                    ${node.up === 0 ? 'disabled' : ''}
+                                    data-host="${escapeHtml(node.host)}"
+                                    data-port="${escapeHtml(node.port)}"
+                                    data-master-name="${escapeHtml(node.master_name)}"
+                                    data-role="${escapeHtml(role)}">
+                                <i class="fa fa-terminal mr-1"></i>Connect
+                            </button>
                         </td>
                     </tr>
                 `;
                 
                 return newHtml;
+            }
+
+            function scrollTerminalToBottom() {
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+
+            function appendTerminalLine(text, className = '') {
+                const line = document.createElement('div');
+                line.className = `terminal-line ${className}`.trim();
+                line.textContent = text;
+                terminalOutput.appendChild(line);
+                scrollTerminalToBottom();
+            }
+
+            function openTerminal(target) {
+                terminalTarget = target;
+                terminalPanel.classList.add('active');
+                terminalSpacer.classList.add('active');
+                terminalTitle.textContent = `Redis Terminal - ${target.host}:${target.port} (${target.role}, ${target.masterName})`;
+                terminalPrompt.textContent = `${target.host}:${target.port}>`;
+                terminalOutput.innerHTML = '';
+                appendTerminalLine(`Connected to ${target.host}:${target.port}, master_name=${target.masterName}, role=${target.role}`, 'meta');
+                appendTerminalLine('输入 Redis 命令后按 Enter 发送。部分高风险命令会被后端拦截。', 'meta');
+                terminalInput.focus();
+            }
+
+            function closeTerminal() {
+                terminalPanel.classList.remove('active');
+                terminalSpacer.classList.remove('active');
+                terminalPanel.classList.remove('fullscreen');
+                terminalSpacer.classList.remove('fullscreen');
+                terminalFullscreenBtn.innerHTML = '<i class="fa fa-expand mr-1"></i>全屏';
+                isTerminalFullscreen = false;
+                terminalTarget = null;
+            }
+
+            function toggleTerminalFullscreen() {
+                isTerminalFullscreen = !isTerminalFullscreen;
+                terminalPanel.classList.toggle('fullscreen', isTerminalFullscreen);
+                terminalSpacer.classList.toggle('fullscreen', isTerminalFullscreen);
+                terminalFullscreenBtn.innerHTML = isTerminalFullscreen
+                    ? '<i class="fa fa-compress mr-1"></i>退出全屏'
+                    : '<i class="fa fa-expand mr-1"></i>全屏';
+                terminalInput.focus();
+                scrollTerminalToBottom();
+            }
+
+            function openTerminalInNewWindow() {
+                if (!terminalTarget) {
+                    return;
+                }
+                const params = new URLSearchParams({
+                    host: terminalTarget.host,
+                    port: String(terminalTarget.port),
+                    master_name: terminalTarget.masterName,
+                    role: terminalTarget.role
+                });
+                const url = `/${encodeURIComponent(sentinelName)}/terminal?${params.toString()}`;
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+
+            async function sendTerminalCommand(command) {
+                if (!terminalTarget || !command.trim()) {
+                    return;
+                }
+
+                appendTerminalLine(`${terminalPrompt.textContent} ${command}`, 'command');
+                terminalInput.value = '';
+                terminalInput.disabled = true;
+
+                try {
+                    const response = await fetch(`/${encodeURIComponent(sentinelName)}/terminal/execute`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            host: terminalTarget.host,
+                            port: terminalTarget.port,
+                            master_name: terminalTarget.masterName,
+                            command: command
+                        })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.ok) {
+                        appendTerminalLine(`ERR ${result.error || '命令执行失败'}`, 'error');
+                        return;
+                    }
+
+                    appendTerminalLine(result.output || '(empty)');
+                    appendTerminalLine(`(${result.duration_ms} ms${result.truncated ? ', truncated' : ''})`, 'meta');
+                } catch (error) {
+                    appendTerminalLine(`ERR ${error.message}`, 'error');
+                } finally {
+                    terminalInput.disabled = false;
+                    terminalInput.focus();
+                }
             }
 
             // 搜索筛选节点
@@ -564,7 +854,7 @@
                     noResultsElement.id = 'no-results-message';
                     noResultsElement.innerHTML = `
                         <i class="fa fa-info-circle mr-2"></i>
-                        未找到匹配 "${keyword}" 的节点组或节点
+                        未找到匹配 "${escapeHtml(keyword)}" 的节点组或节点
                     `;
                     nodesContainer.appendChild(noResultsElement);
                 } else {
@@ -616,6 +906,66 @@
                 searchInput.value = '';
                 filterNodes('');
                 this.style.display = 'none';
+            });
+
+            nodesContainer.addEventListener('click', function(event) {
+                const button = event.target.closest('.redis-connect-btn');
+                if (!button) {
+                    return;
+                }
+
+                openTerminal({
+                    host: button.dataset.host,
+                    port: Number(button.dataset.port),
+                    masterName: button.dataset.masterName,
+                    role: button.dataset.role
+                });
+            });
+
+            terminalForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const command = terminalInput.value.trim();
+                if (!command) {
+                    return;
+                }
+                commandHistory.push(command);
+                historyIndex = commandHistory.length;
+                sendTerminalCommand(command);
+            });
+
+            terminalInput.addEventListener('keydown', function(event) {
+                if (event.key === 'ArrowUp') {
+                    if (commandHistory.length === 0) {
+                        return;
+                    }
+                    event.preventDefault();
+                    historyIndex = Math.max(0, historyIndex - 1);
+                    terminalInput.value = commandHistory[historyIndex] || '';
+                } else if (event.key === 'ArrowDown') {
+                    if (commandHistory.length === 0) {
+                        return;
+                    }
+                    event.preventDefault();
+                    historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+                    terminalInput.value = commandHistory[historyIndex] || '';
+                }
+            });
+
+            terminalCloseBtn.addEventListener('click', closeTerminal);
+            terminalFullscreenBtn.addEventListener('click', toggleTerminalFullscreen);
+            terminalNewWindowBtn.addEventListener('click', openTerminalInNewWindow);
+            terminalClearBtn.addEventListener('click', function() {
+                terminalOutput.innerHTML = '';
+                if (terminalTarget) {
+                    appendTerminalLine(`Connected to ${terminalTarget.host}:${terminalTarget.port}`, 'meta');
+                }
+                terminalInput.focus();
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && terminalPanel.classList.contains('active') && isTerminalFullscreen) {
+                    toggleTerminalFullscreen();
+                }
             });
         })();
     </script>

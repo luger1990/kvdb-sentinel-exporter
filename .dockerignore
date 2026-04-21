@@ -1,0 +1,16 @@
+.git
+.gitignore
+.codex
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv/
+venv/
+env/
+ENV/
+tests/
+docs/
+*.log

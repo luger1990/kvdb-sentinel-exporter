@@ -77,6 +77,7 @@ docker run -dit \
   -p 16379:16379 \
   --name=kvdb-sentinel-exporter \
   -e DEBUG=true \
+  -e SECRET_KEY='replace-with-a-random-secret' \
   -e HOST=127.0.0.1 \
   -e PORT=6379 \
   -e CONFIG_PATH=/app/config/config.yaml \
@@ -106,7 +107,7 @@ sentinels:
   # 第一个哨兵组
   redis-group-1:
     # 本组Redis默认密码（可选，当master没有单独指定密码时使用此密码）
-    default_password: "ce67a0a422243742573ac12024c39f82"
+    default_password: "${REDIS_GROUP_1_PASSWORD}"
     sentinel_hosts:
       - "127.0.0.1:26379"
       - "127.0.0.1:26380"
@@ -115,7 +116,7 @@ sentinels:
     master_groups:
       # 示例：为特定master_name设置专用密码
       kvrocks-group-1:
-        password: "cfc44dfc4f1a3f36400740680fd8c30c"
+        password: "${KVROCKS_GROUP_1_PASSWORD}"
       # 注意：未在此处列出的master_name将使用default_password
   
   # 第二个哨兵组
@@ -123,9 +124,9 @@ sentinels:
     # 本组Redis默认密码（可选）
     default_password: ""
     sentinel_hosts:
-      - "127.0.0.1:16379"
-      - "127.0.0.1:16380"
-      - "127.0.0.1:16391"
+      - "127.0.0.1:46379"
+      - "127.0.0.1:46380"
+      - "127.0.0.1:46381"
 
 # 指标收集配置
 metrics:
@@ -135,11 +136,31 @@ metrics:
   connect_timeout: 3
   # 读取超时时间（秒）
   read_timeout: 5
+  # Sentinel master discovery cache TTL in seconds
+  discovery_ttl: 30
 
 # Web UI配置
 web_ui:
   # 刷新间隔（秒）
-  refresh_interval: 30 
+  refresh_interval: 30
+  # Enable third-party analytics script
+  analytics_enabled: false
+
+# Web Terminal configuration
+terminal:
+  # Enable Redis Web Terminal
+  enabled: true
+  # Commands blocked in Web Terminal, case-insensitive
+  blocked_commands:
+    - config
+    - debug
+    - flushall
+    - flushdb
+    - monitor
+    - replicaof
+    - save
+    - shutdown
+    - slaveof
 ```
 
 ### Environment Variables
@@ -150,6 +171,8 @@ Configuration can be set via `.env` file or environment variables:
 - `HOST`: Listen address (default: 0.0.0.0)
 - `PORT`: Listen port (default: 16379)
 - `CONFIG_PATH`: Config file path (default: config.yaml)
+- `SECRET_KEY`: Flask session secret key. Set this in production.
+- Redis passwords can reference environment variables with `${ENV_NAME}` in the YAML config.
 
 ## Usage
 
@@ -182,9 +205,13 @@ Key metrics include:
 - `kvdb_role`: Redis node role
 - `kvdb_memory_used_bytes`: Redis memory usage
 - `kvdb_connected_clients`: Number of client connections
-- `kvdb_commands_processed_total`: Total processed commands
+- `kvdb_commands_processed`: Cumulative processed commands
+- `kvdb_scrape_success`: Whether the scrape fully succeeded
+- `kvdb_scrape_duration_seconds`: Scrape duration
+- `kvdb_sentinel_up`: Sentinel instance availability
 - `kvdb_instantaneous_ops_per_sec`: Operations per second
 - `kvdb_engine_type`: Engine type (Redis/KVRocks)
+- `kvdb_build_info`: Engine and version metadata
 
 ## Prometheus Configuration Example
 
@@ -205,7 +232,7 @@ For improved development efficiency, this project supports hot reloading, which 
 
 1. Install development dependencies
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 
 2. Create development environment configuration file

@@ -11,4 +11,5 @@ venv/
 .venv/
 ENV/
 .env
-*.log 
+*.log
+.codex

@@ -1,0 +1,42 @@
+# KVDB Sentinel Exporter local development config.
+# This file matches docker-redis-sentinel-compose.yaml.
+
+sentinels:
+  redis-sentinel-group-2:
+    default_password: ""
+    sentinel_hosts:
+      - "127.0.0.1:46379"
+      - "127.0.0.1:46380"
+      - "127.0.0.1:46381"
+
+metrics:
+  thread_pool_size: 10
+  connect_timeout: 3
+  read_timeout: 5
+  discovery_ttl: 30
+
+web_ui:
+  refresh_interval: 30
+  analytics_enabled: false
+
+terminal:
+  enabled: true
+  blocked_commands:
+    - acl
+    - bgrewriteaof
+    - bgsave
+    - config
+    - debug
+    - failover
+    - flushall
+    - flushdb
+    - lastsave
+    - migrate
+    - module
+    - monitor
+    - replicaof
+    - restore
+    - save
+    - shutdown
+    - slaveof
+    - sync
