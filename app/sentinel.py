@@ -168,6 +168,31 @@ class RedisSentinel:
             decode_responses=True,
         )
 
+    def is_known_node(self, host, port, master_name):
+        """确认目标Redis节点来自当前Sentinel发现结果，避免任意地址连接。"""
+        try:
+            target_port = int(port)
+        except (TypeError, ValueError):
+            return False
+
+        for node in self._discover_nodes():
+            if (
+                str(node.get('host')) == str(host)
+                and int(node.get('port')) == target_port
+                and str(node.get('master_name')) == str(master_name)
+            ):
+                return True
+        return False
+
+    def execute_redis_command(self, host, port, master_name, command_parts):
+        """在指定Redis节点执行命令。"""
+        client = self.get_redis_client(host, port, master_name)
+        try:
+            client.ping()
+            return client.execute_command(*command_parts)
+        finally:
+            client.close()
+
     @staticmethod
     def detect_engine(info):
         if 'disk_capacity' in info:

@@ -10,6 +10,26 @@ class ConfigError(ValueError):
 class Config:
     _config = None
     _config_path = None
+    DEFAULT_BLOCKED_COMMANDS = [
+        'acl',
+        'bgrewriteaof',
+        'bgsave',
+        'config',
+        'debug',
+        'failover',
+        'flushall',
+        'flushdb',
+        'lastsave',
+        'migrate',
+        'module',
+        'monitor',
+        'replicaof',
+        'restore',
+        'save',
+        'shutdown',
+        'slaveof',
+        'sync',
+    ]
 
     @staticmethod
     def _resolve_env(value):
@@ -117,6 +137,15 @@ class Config:
         web_ui['refresh_interval'] = cls._as_int(web_ui.get('refresh_interval', 30), 'web_ui.refresh_interval', minimum=1)
         web_ui['analytics_enabled'] = bool(web_ui.get('analytics_enabled', False))
 
+        terminal = config.setdefault('terminal', {})
+        if not isinstance(terminal, dict):
+            raise ConfigError("terminal 必须是对象")
+        terminal['enabled'] = bool(terminal.get('enabled', True))
+        blocked_commands = terminal.get('blocked_commands', cls.DEFAULT_BLOCKED_COMMANDS)
+        if not isinstance(blocked_commands, list):
+            raise ConfigError("terminal.blocked_commands 必须是列表")
+        terminal['blocked_commands'] = sorted({str(command).strip().lower() for command in blocked_commands if str(command).strip()})
+
         return config
     
     @classmethod
@@ -206,3 +235,9 @@ class Config:
         """获取Web UI配置"""
         config = cls.get_config()
         return config.get('web_ui', {}) 
+
+    @classmethod
+    def get_terminal_config(cls):
+        """获取Web Terminal配置"""
+        config = cls.get_config()
+        return config.get('terminal', {})

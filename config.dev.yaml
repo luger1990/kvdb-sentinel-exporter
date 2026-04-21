@@ -18,3 +18,25 @@ metrics:
 web_ui:
   refresh_interval: 30
   analytics_enabled: false
+
+terminal:
+  enabled: true
+  blocked_commands:
+    - acl
+    - bgrewriteaof
+    - bgsave
+    - config
+    - debug
+    - failover
+    - flushall
+    - flushdb
+    - lastsave
+    - migrate
+    - module
+    - monitor
+    - replicaof
+    - restore
+    - save
+    - shutdown
+    - slaveof
+    - sync

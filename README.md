@@ -145,6 +145,22 @@ web_ui:
   refresh_interval: 30
   # Enable third-party analytics script
   analytics_enabled: false
+
+# Web Terminal configuration
+terminal:
+  # Enable Redis Web Terminal
+  enabled: true
+  # Commands blocked in Web Terminal, case-insensitive
+  blocked_commands:
+    - config
+    - debug
+    - flushall
+    - flushdb
+    - monitor
+    - replicaof
+    - save
+    - shutdown
+    - slaveof
 ```
 
 ### Environment Variables

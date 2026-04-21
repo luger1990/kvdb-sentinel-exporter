@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, Response, jsonify
+from flask import Blueprint, current_app, render_template, request, Response, jsonify
 from .sentinel import RedisSentinel
 from .metrics import RedisMetricsCollector
 from .config import Config
 import logging
+import shlex
 import time
 from collections import OrderedDict
 
 bp = Blueprint('routes', __name__)
 _sentinel_clients = {}
+MAX_TERMINAL_OUTPUT_LENGTH = 20000
 
 
 def get_sentinel_client(sentinel_name):
@@ -57,11 +59,77 @@ def build_node_data(info):
         'used_disk_size': info.get('used_disk_size', 0),
     }
 
+
+def parse_redis_command(command):
+    command = (command or '').strip()
+    if not command:
+        raise ValueError("命令不能为空")
+    if len(command) > 4096:
+        raise ValueError("命令过长")
+
+    try:
+        parts = shlex.split(command)
+    except ValueError as exc:
+        raise ValueError(f"命令解析失败: {exc}") from exc
+
+    if not parts:
+        raise ValueError("命令不能为空")
+    return parts
+
+
+def validate_terminal_command(command_parts):
+    terminal_config = Config.get_terminal_config()
+    if not terminal_config.get('enabled', True):
+        raise PermissionError("Web Terminal 已禁用")
+
+    command_name = command_parts[0].lower()
+    blocked_commands = set(terminal_config.get('blocked_commands', []))
+    if command_name in blocked_commands:
+        raise PermissionError(f"命令 '{command_parts[0]}' 已被禁止")
+
+
+def format_redis_result(value):
+    if value is None:
+        return "(nil)"
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    if isinstance(value, (bytes, bytearray)):
+        return value.decode('utf-8', errors='replace')
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        lines = []
+        for key, item in value.items():
+            lines.append(f"{format_redis_result(key)}: {format_redis_result(item)}")
+        return "\n".join(lines)
+    if isinstance(value, (list, tuple, set)):
+        if not value:
+            return "(empty list or set)"
+        lines = []
+        for index, item in enumerate(value, start=1):
+            item_text = format_redis_result(item)
+            if "\n" in item_text:
+                lines.append(f"{index})")
+                lines.extend(f"   {line}" for line in item_text.splitlines())
+            else:
+                lines.append(f"{index}) {item_text}")
+        return "\n".join(lines)
+
+    return str(value)
+
 @bp.route('/')
 def index():
     """首页 - 显示所有可用的哨兵组"""
     sentinel_names = Config.get_all_sentinel_names()
     return render_template('index.html', sentinel_names=sentinel_names)
+
+
+@bp.route('/favicon.ico')
+def favicon():
+    """浏览器默认favicon入口"""
+    return current_app.send_static_file('favicon.ico')
 
 @bp.route('/<sentinel_name>/metrics')
 def metrics(sentinel_name):
@@ -225,6 +293,85 @@ def nodes(sentinel_name):
     except Exception as e:
         logging.error(f"获取节点信息失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/<sentinel_name>/terminal/execute', methods=['POST'])
+def terminal_execute(sentinel_name):
+    """API - 在指定Redis节点执行单条Redis命令"""
+    try:
+        payload = request.get_json(silent=True) or {}
+        host = str(payload.get('host', '')).strip()
+        port = int(payload.get('port'))
+        master_name = str(payload.get('master_name', '')).strip()
+        command = str(payload.get('command', '')).strip()
+
+        if not host or not master_name:
+            return jsonify({'error': 'host 和 master_name 不能为空'}), 400
+
+        command_parts = parse_redis_command(command)
+        validate_terminal_command(command_parts)
+
+        sentinel = get_sentinel_client(sentinel_name)
+        if not sentinel.is_known_node(host, port, master_name):
+            return jsonify({'error': '目标Redis节点不属于当前Sentinel发现结果'}), 403
+
+        started_at = time.time()
+        result = sentinel.execute_redis_command(host, port, master_name, command_parts)
+        output = format_redis_result(result)
+        truncated = False
+        if len(output) > MAX_TERMINAL_OUTPUT_LENGTH:
+            output = output[:MAX_TERMINAL_OUTPUT_LENGTH] + "\n... output truncated ..."
+            truncated = True
+
+        return jsonify({
+            'ok': True,
+            'output': output,
+            'truncated': truncated,
+            'duration_ms': round((time.time() - started_at) * 1000, 2),
+        })
+    except KeyError as e:
+        logging.warning("Redis Terminal执行失败: %s", str(e))
+        return jsonify({'error': str(e)}), 404
+    except PermissionError as e:
+        return jsonify({'error': str(e)}), 403
+    except (TypeError, ValueError) as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logging.warning("Redis Terminal执行失败: %s", str(e))
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/<sentinel_name>/terminal')
+def terminal_page(sentinel_name):
+    """Web UI - 独立Redis Terminal页面"""
+    try:
+        sentinel = get_sentinel_client(sentinel_name)
+        host = str(request.args.get('host', '')).strip()
+        port = int(request.args.get('port'))
+        master_name = str(request.args.get('master_name', '')).strip()
+        role = str(request.args.get('role', 'unknown')).strip() or 'unknown'
+
+        if not sentinel.is_known_node(host, port, master_name):
+            return render_template('error.html', error='目标Redis节点不属于当前Sentinel发现结果'), 403
+
+        return render_template(
+            'terminal.html',
+            sentinel_name=sentinel_name,
+            host=host,
+            port=port,
+            master_name=master_name,
+            role=role,
+        )
+    except KeyError as e:
+        logging.warning("打开Redis Terminal失败: %s", str(e))
+        return render_template('error.html', error=str(e)), 404
+    except (TypeError, ValueError) as e:
+        return render_template('error.html', error=str(e)), 400
+    except Exception as e:
+        logging.warning("打开Redis Terminal失败: %s", str(e))
+        return render_template('error.html', error=str(e)), 500
+
+
 @bp.route('/api/health', methods=['GET'])
 def health_check():
     return Response("health", status=200, mimetype='text/plain')

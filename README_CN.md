@@ -147,6 +147,22 @@ web_ui:
   refresh_interval: 30
   # 是否加载第三方统计脚本
   analytics_enabled: false
+
+# Web Terminal配置
+terminal:
+  # 是否启用Redis Web Terminal
+  enabled: true
+  # 禁止在Web Terminal中执行的命令，命令名大小写不敏感
+  blocked_commands:
+    - config
+    - debug
+    - flushall
+    - flushdb
+    - monitor
+    - replicaof
+    - save
+    - shutdown
+    - slaveof
 ```
 
 ### 环境变量
