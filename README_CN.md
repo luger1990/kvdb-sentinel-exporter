@@ -76,6 +76,7 @@ docker run -dit \
   -p 16379:16379 \
   --name=kvdb-sentinel-exporter \
   -e DEBUG=true \
+  -e SECRET_KEY='replace-with-a-random-secret' \
   -e HOST=127.0.0.1 \
   -e PORT=6379 \
   -e CONFIG_PATH=/app/config/config.yaml \
@@ -108,7 +109,7 @@ sentinels:
   # 第一个哨兵组
   redis-group-1:
     # 本组Redis默认密码（可选，当master没有单独指定密码时使用此密码）
-    default_password: "ce67a0a422243742573ac12024c39f82"
+    default_password: "${REDIS_GROUP_1_PASSWORD}"
     sentinel_hosts:
       - "127.0.0.1:26379"
       - "127.0.0.1:26380"
@@ -117,7 +118,7 @@ sentinels:
     master_groups:
       # 示例：为特定master_name设置专用密码
       kvrocks-group-1:
-        password: "cfc44dfc4f1a3f36400740680fd8c30c"
+        password: "${KVROCKS_GROUP_1_PASSWORD}"
       # 注意：未在此处列出的master_name将使用default_password
   
   # 第二个哨兵组
@@ -125,9 +126,9 @@ sentinels:
     # 本组Redis默认密码（可选）
     default_password: ""
     sentinel_hosts:
-      - "127.0.0.1:16379"
-      - "127.0.0.1:16380"
-      - "127.0.0.1:16391"
+      - "127.0.0.1:46379"
+      - "127.0.0.1:46380"
+      - "127.0.0.1:46381"
 
 # 指标收集配置
 metrics:
@@ -137,11 +138,15 @@ metrics:
   connect_timeout: 3
   # 读取超时时间（秒）
   read_timeout: 5
+  # Sentinel master发现结果缓存时间（秒）
+  discovery_ttl: 30
 
 # Web UI配置
 web_ui:
   # 刷新间隔（秒）
-  refresh_interval: 30 
+  refresh_interval: 30
+  # 是否加载第三方统计脚本
+  analytics_enabled: false
 ```
 
 ### 环境变量
@@ -152,6 +157,8 @@ web_ui:
 - `HOST`: 监听主机地址（默认: 0.0.0.0）
 - `PORT`: 监听端口（默认: 16379）
 - `CONFIG_PATH`: 配置文件路径（默认: config.yaml）
+- `SECRET_KEY`: Flask会话密钥（生产环境建议设置）
+- Redis密码可在配置中使用`${ENV_NAME}`引用环境变量
 
 ## 使用
 
@@ -184,9 +191,13 @@ Prometheus指标接口：`http://localhost:16379/<sentinel_name>/metrics`
 - `kvdb_role`: Redis节点角色
 - `kvdb_memory_used_bytes`: Redis已使用内存
 - `kvdb_connected_clients`: 客户端连接数
-- `kvdb_commands_processed_total`: 处理的命令总数
+- `kvdb_commands_processed`: 处理的命令累计数
+- `kvdb_scrape_success`: 本次采集是否完全成功
+- `kvdb_scrape_duration_seconds`: 本次采集耗时
+- `kvdb_sentinel_up`: Sentinel实例是否在线
 - `kvdb_instantaneous_ops_per_sec`: 每秒操作数
 - `kvdb_engine_type`: 引擎类型(Redis/KVRocks)
+- `kvdb_build_info`: 引擎和版本信息
 
 ## Prometheus配置示例
 
@@ -207,7 +218,7 @@ scrape_configs:
 
 1. 安装开发依赖
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 
 2. 创建开发环境配置文件

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, Response, jsonify, current_app
+from flask import Blueprint, render_template, Response, jsonify
 from .sentinel import RedisSentinel
 from .metrics import RedisMetricsCollector
 from .config import Config
@@ -7,6 +7,55 @@ import time
 from collections import OrderedDict
 
 bp = Blueprint('routes', __name__)
+_sentinel_clients = {}
+
+
+def get_sentinel_client(sentinel_name):
+    """按哨兵组缓存客户端，避免每次请求重复建立Sentinel连接。"""
+    if Config.get_sentinel_config(sentinel_name) is None:
+        raise KeyError(f"Sentinel配置 '{sentinel_name}' 不存在")
+
+    sentinel = _sentinel_clients.get(sentinel_name)
+    if sentinel is None:
+        sentinel = RedisSentinel(sentinel_name)
+        _sentinel_clients[sentinel_name] = sentinel
+    return sentinel
+
+
+def build_node_data(info):
+    is_kvrocks = info.get('type') == 2 or info.get('is_kvrocks', False)
+    maxmemory = 0
+    if not is_kvrocks:
+        maxmemory = info.get('maxmemory', 0)
+        try:
+            if int(maxmemory) <= 0:
+                maxmemory = info.get('total_system_memory', 0)
+        except (TypeError, ValueError):
+            maxmemory = 0
+
+    total_keys = info.get('total_keys', 0)
+    return {
+        'master_name': info.get('master_name', 'unknown'),
+        'host': info.get('host', 'unknown'),
+        'port': info.get('port', 'unknown'),
+        'role': info.get('node_role', 'unknown'),
+        'up': info.get('up', 1),
+        'error': info.get('error', ''),
+        'connected_clients': info.get('connected_clients', 0),
+        'used_memory_human': info.get('used_memory_human', '0B'),
+        'total_system_memory_human': info.get('total_system_memory_human', '0B'),
+        'used_memory': info.get('used_memory', 0),
+        'maxmemory': maxmemory,
+        'instantaneous_ops_per_sec': info.get('instantaneous_ops_per_sec', 0),
+        'uptime_in_seconds': info.get('uptime_in_seconds', 0),
+        'uptime_in_days': info.get('uptime_in_days', 0),
+        'version': info.get('version', 'unknown') if is_kvrocks else info.get('redis_version', 'unknown'),
+        'is_kvrocks': is_kvrocks,
+        'type': info.get('type', 1),
+        'total_keys': total_keys,
+        'disk_capacity': info.get('disk_capacity', 0),
+        'used_disk_size': info.get('used_disk_size', 0),
+    }
 
 @bp.route('/')
 def index():
@@ -22,17 +71,26 @@ def metrics(sentinel_name):
         metrics_collector = RedisMetricsCollector()
         
         # 获取Redis Sentinel客户端
-        sentinel = RedisSentinel(sentinel_name)
+        sentinel = get_sentinel_client(sentinel_name)
         
         # 收集所有Redis节点信息
         redis_info = sentinel.collect_all_redis_info()
         
         # 收集Prometheus指标
+        metrics_collector.collect_scrape_metrics(
+            sentinel_name,
+            sentinel.last_scrape_success,
+            sentinel.last_scrape_duration,
+            sentinel.sentinel_status,
+        )
         metrics_collector.collect_metrics(redis_info, sentinel_name)
         
         # 返回指标数据
         return Response(metrics_collector.get_metrics(), 
                        content_type=metrics_collector.get_content_type())
+    except KeyError as e:
+        logging.warning("获取指标失败: %s", str(e))
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(f"获取指标失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -57,7 +115,7 @@ def info_data(sentinel_name):
     """API - 返回Redis节点详细信息的JSON数据，用于AJAX请求"""
     try:
         # 获取Redis Sentinel客户端
-        sentinel = RedisSentinel(sentinel_name)
+        sentinel = get_sentinel_client(sentinel_name)
         
         # 收集所有Redis节点信息
         redis_info = sentinel.collect_all_redis_info()
@@ -67,53 +125,10 @@ def info_data(sentinel_name):
         slaves = {}
         
         # 整理主节点和从节点数据
-        for instance, info in redis_info.items():
+        for info in redis_info.values():
             master_name = info.get('master_name', 'unknown')
             role = info.get('node_role', 'unknown')
-            is_kvrocks = info.get('is_kvrocks', False)
-            
-            # 添加type字段：1=Redis, 2=KVRocks, 3=Pika
-            node_type = 2 if is_kvrocks else 1
-            # 未来可以在这里添加Pika等其他引擎类型的判断
-            # 例如：if 'pika_feature' in info: node_type = 3
-
-            maxmemory = 0
-            if not is_kvrocks:
-                maxmemory = info.get('maxmemory', 0)
-                if int(maxmemory) <= 0:
-                    maxmemory = info.get('total_system_memory')
-
-            # 计算键总数
-            total_keys = info.get('total_keys', 0)
-            if not total_keys:
-                total_keys = 0
-                for key, value in info.items():
-                    if key.startswith('db') and isinstance(value, dict) and 'keys' in value:
-                        try:
-                            total_keys += int(value['keys'])
-                        except (ValueError, TypeError):
-                            logging.warning(f"处理键数量时出错，无效值: {value['keys']}")
-
-            node_data = {
-                'master_name': master_name,  # 添加master_name到节点数据中
-                'host': info.get('host', 'unknown'),
-                'port': info.get('port', 'unknown'),
-                'role': role,
-                'connected_clients': info.get('connected_clients', 0),
-                'used_memory_human': info.get('used_memory_human', '0B'),
-                'total_system_memory_human': info.get('total_system_memory_human', '0B'),
-                'used_memory': info.get('used_memory', 0),
-                'maxmemory': maxmemory,
-                'instantaneous_ops_per_sec': info.get('instantaneous_ops_per_sec', 0),
-                'uptime_in_seconds': info.get('uptime_in_seconds', 0),
-                'uptime_in_days': info.get('uptime_in_days', 0),
-                'version': info.get('version', 'unknown') if is_kvrocks else info.get('redis_version', 'unknown'),
-                'is_kvrocks': info.get('is_kvrocks', False),  # 保留兼容性
-                'type': node_type,  # 新增type字段
-                'total_keys': total_keys,
-                'disk_capacity': info.get('disk_capacity', ''),
-                'used_disk_size': info.get('used_disk_size', ''),
-            }
+            node_data = build_node_data(info)
             
             if role == 'master':
                 if master_name not in masters:
@@ -157,6 +172,9 @@ def info_data(sentinel_name):
             json.dumps(response_data),
             mimetype='application/json'
         )
+    except KeyError as e:
+        logging.warning("获取节点详情数据失败: %s", str(e))
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(f"获取节点详情数据失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -166,7 +184,7 @@ def nodes(sentinel_name):
     """API - 返回所有Redis节点的JSON数据"""
     try:
         # 获取Redis Sentinel客户端
-        sentinel = RedisSentinel(sentinel_name)
+        sentinel = get_sentinel_client(sentinel_name)
         
         # 获取所有主节点
         masters = sentinel.get_all_masters()
@@ -201,6 +219,9 @@ def nodes(sentinel_name):
                 result['slaves'][master_name].append(slave_info)
         
         return jsonify(result)
+    except KeyError as e:
+        logging.warning("获取节点信息失败: %s", str(e))
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(f"获取节点信息失败: {str(e)}")
         return jsonify({'error': str(e)}), 500

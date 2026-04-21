@@ -1,0 +1,193 @@
+# Local Redis Sentinel test cluster for kvdb-sentinel-exporter.
+#
+# This compose file uses host networking so Sentinel reports Redis nodes as
+# 127.0.0.1:<port>, which matches the default redis-sentinel-group-2 in
+# config.yaml and lets the exporter run directly on the host.
+#
+# Start:
+#   docker compose -f docker-redis-sentinel-compose.yaml up -d
+#
+# Stop and remove:
+#   docker compose -f docker-redis-sentinel-compose.yaml down
+#
+# Ports:
+#   Redis master:     36379
+#   Redis replicas:   36380, 36381
+#   Redis Sentinel:   46379, 46380, 46381
+#
+# Note: network_mode: host is intended for Linux local testing. These Redis
+# instances run without authentication and with protected mode disabled.
+
+x-redis-image: &redis_image redis:7.2-alpine
+
+services:
+  redis-master:
+    image: *redis_image
+    container_name: kvdb-test-redis-master
+    network_mode: host
+    command:
+      - redis-server
+      - --port
+      - "36379"
+      - --bind
+      - 127.0.0.1
+      - --protected-mode
+      - "no"
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "36379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-replica-1:
+    image: *redis_image
+    container_name: kvdb-test-redis-replica-1
+    network_mode: host
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    command:
+      - redis-server
+      - --port
+      - "36380"
+      - --bind
+      - 127.0.0.1
+      - --protected-mode
+      - "no"
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+      - --replicaof
+      - 127.0.0.1
+      - "36379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "36380", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-replica-2:
+    image: *redis_image
+    container_name: kvdb-test-redis-replica-2
+    network_mode: host
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    command:
+      - redis-server
+      - --port
+      - "36381"
+      - --bind
+      - 127.0.0.1
+      - --protected-mode
+      - "no"
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+      - --replicaof
+      - 127.0.0.1
+      - "36379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "36381", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-sentinel-1:
+    image: *redis_image
+    container_name: kvdb-test-redis-sentinel-1
+    network_mode: host
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        cat > /tmp/sentinel.conf <<'EOF'
+        port 46379
+        bind 127.0.0.1
+        protected-mode no
+        sentinel monitor mymaster 127.0.0.1 36379 2
+        sentinel down-after-milliseconds mymaster 5000
+        sentinel failover-timeout mymaster 60000
+        sentinel parallel-syncs mymaster 1
+        EOF
+        exec redis-server /tmp/sentinel.conf --sentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "46379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-sentinel-2:
+    image: *redis_image
+    container_name: kvdb-test-redis-sentinel-2
+    network_mode: host
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        cat > /tmp/sentinel.conf <<'EOF'
+        port 46380
+        bind 127.0.0.1
+        protected-mode no
+        sentinel monitor mymaster 127.0.0.1 36379 2
+        sentinel down-after-milliseconds mymaster 5000
+        sentinel failover-timeout mymaster 60000
+        sentinel parallel-syncs mymaster 1
+        EOF
+        exec redis-server /tmp/sentinel.conf --sentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "46380", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-sentinel-3:
+    image: *redis_image
+    container_name: kvdb-test-redis-sentinel-3
+    network_mode: host
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        cat > /tmp/sentinel.conf <<'EOF'
+        port 46381
+        bind 127.0.0.1
+        protected-mode no
+        sentinel monitor mymaster 127.0.0.1 36379 2
+        sentinel down-after-milliseconds mymaster 5000
+        sentinel failover-timeout mymaster 60000
+        sentinel parallel-syncs mymaster 1
+        EOF
+        exec redis-server /tmp/sentinel.conf --sentinel
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "46381", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

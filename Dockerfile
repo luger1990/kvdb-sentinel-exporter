@@ -17,9 +17,14 @@ ENV CONFIG_PATH=/app/config.yaml
 ENV HOST=0.0.0.0
 ENV PORT=16379
 ENV DEBUG=false
+ENV GUNICORN_WORKERS=2
 
 # Clean up unnecessary files
-RUN rm -rf /app/tests /app/.git /app/.gitignore /app/build_docker.sh
+RUN rm -rf /app/tests /app/.git /app/.gitignore /app/build_docker.sh && \
+    useradd --create-home --shell /usr/sbin/nologin appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
 
 # Set the container's startup command
-CMD ["python", "run.py"]
+CMD ["sh", "-c", "gunicorn -w ${GUNICORN_WORKERS} -b ${HOST}:${PORT} run:app"]

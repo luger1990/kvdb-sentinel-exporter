@@ -171,7 +171,7 @@
             <div class="alert alert-info py-2">
                 <i class="fa fa-info-circle mr-2"></i>
                 点击"开启自动刷新"后，页面将每 <strong>{{ refresh_interval }}</strong> 秒自动刷新一次。
-                <a href="/{{ sentinel_name }}/metrics" class="alert-link ml-2" target="_blank">
+                <a href="/{{ sentinel_name|urlencode }}/metrics" class="alert-link ml-2" target="_blank">
                     <i class="fa fa-external-link"></i> 查看Prometheus指标
                 </a>
             </div>
@@ -209,8 +209,8 @@
     <script>
         // Redis节点数据管理和UI更新
         (function () {
-            const sentinelName = "{{ sentinel_name }}";
-            const refreshInterval = {{ refresh_interval }} * 1000;  // 转换为毫秒
+            const sentinelName = {{ sentinel_name|tojson }};
+            const refreshInterval = {{ refresh_interval|tojson }} * 1000;  // 转换为毫秒
             let lastRefreshTime = new Date();
             const refreshTimestampEl = document.getElementById('last-refresh');
             const refreshBtn = document.getElementById('refresh-btn');
@@ -230,11 +230,25 @@
 
             // 格式化字节为可读单位
             function formatBytes(bytes) {
+                bytes = Number(bytes) || 0;
                 const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
                 if (bytes === 0) return '0 B';
                 const i = Math.floor(Math.log(bytes) / Math.log(1024));
                 const value = bytes / Math.pow(1024, i);
                 return `${value.toFixed(2)} ${sizes[i]}`;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function escapeAttr(value) {
+                return escapeHtml(value).replace(/\s+/g, '-');
             }
 
             // 更新最后刷新时间显示
@@ -257,7 +271,7 @@
                     loadingOverlay.style.display = 'flex';
                 }
 
-                fetch(`/${sentinelName}/info/data`)
+                fetch(`/${encodeURIComponent(sentinelName)}/info/data`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('网络响应错误');
@@ -332,13 +346,14 @@
                 // 循环渲染每个主节点组
                 for (const masterName of sortedMasterNames) {
                     const masterNodes = nodeGroups[masterName];
+                    const safeMasterName = escapeHtml(masterName);
                     html += `
-                        <div class="master-group-container" data-master-name="${masterName}">
+                        <div class="master-group-container" data-master-name="${escapeAttr(masterName)}">
                             <div class="card mb-3">
                                 <div class="card-header py-2 bg-master">
                                     <h5 class="mb-0">
                                         <i class="fa fa-star mr-1"></i>
-                                        主节点组: ${masterName}
+                                        主节点组: ${safeMasterName}
                                     </h5>
                                 </div>
                                 <div class="card-body p-0">
@@ -398,6 +413,11 @@
                 const isKvrocks = nodeType === 2;
                 const isPika = nodeType === 3;
                 let memoryPercent = 0;
+                const nodeId = `${node.host}:${node.port}`;
+                const safeNodeId = escapeHtml(nodeId);
+                const attrNodeId = escapeAttr(nodeId);
+                const safeVersion = escapeHtml(node.version);
+                const safeError = escapeHtml(node.error || '');
 
                 if (nodeType === 1 && node.used_memory && node.maxmemory > 0) {
                     memoryPercent = (node.used_memory / node.maxmemory) * 100;
@@ -423,12 +443,13 @@
 
                 // 将新节点HTML添加到现有内容
                 let newHtml = htmlContent + `
-                    <tr data-node-id="${node.host}:${node.port}">
+                    <tr data-node-id="${attrNodeId}">
                         <td>
-                            <span class="health-status health-good"
-                                  id="health-${node.host}-${node.port}"></span>
-                            <strong>${node.host}:${node.port}</strong>
+                            <span class="health-status ${node.up === 0 ? 'health-critical' : 'health-good'}"
+                                  id="health-${attrNodeId}"></span>
+                            <strong>${safeNodeId}</strong>
                             <span class="engine-type ${engineTypeClass}">${engineTypeName}</span>
+                            ${node.up === 0 ? `<div class="text-danger small">${safeError}</div>` : ''}
                         </td>
                         <td style="width: 10%">
                             ${role === 'master'
@@ -438,13 +459,13 @@
                         </td>
                         <td class="text-center" style="width: 10%">
                             <span class="compact-value"
-                                  id="qps-${node.host}-${node.port}">${node.instantaneous_ops_per_sec}</span>
+                                  id="qps-${attrNodeId}">${escapeHtml(node.instantaneous_ops_per_sec)}</span>
                         </td>
                         <td class="text-center" style="width: 10%">
-                            <span class="compact-value">${node.connected_clients}</span>
+                            <span class="compact-value">${escapeHtml(node.connected_clients)}</span>
                         </td>
                         <td class="text-center" style="width: 10%">
-                            <span class="compact-value">${node.total_keys}</span>
+                            <span class="compact-value">${escapeHtml(node.total_keys)}</span>
                         </td>
                         <td style="width: 15%">
                 `;
@@ -458,9 +479,9 @@
                                      style="width: ${memoryPercent}%"></div>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span class="memory-text">${node.used_memory_human} / ${node.total_system_memory_human}</span>
+                                <span class="memory-text">${escapeHtml(node.used_memory_human)} / ${escapeHtml(node.total_system_memory_human)}</span>
                                 <span class="memory-text"
-                                      id="memory-percent-${node.host}-${node.port}">${memoryPercent.toFixed(1)}%</span>
+                                      id="memory-percent-${attrNodeId}">${memoryPercent.toFixed(1)}%</span>
                             </div>
                         </div>
                     `;
@@ -478,7 +499,7 @@
                             <div class="d-flex justify-content-between">
                                 <span class="memory-text">${formatBytes(node.used_disk_size)} / ${formatBytes(node.disk_capacity)}</span>
                                 <span class="memory-text"
-                                      id="memory-percent-${node.host}-${node.port}">${memoryPercent.toFixed(1)}%</span>
+                                      id="memory-percent-${attrNodeId}">${memoryPercent.toFixed(1)}%</span>
                             </div>
                         </div>
                     `;
@@ -489,10 +510,10 @@
                 newHtml += `
                         </td>
                         <td class="text-center" style="width: 10%">
-                            ${node.version}
+                            ${safeVersion}
                         </td>
                         <td class="text-center" style="width: 10%">
-                            ${node.uptime_in_days} 天
+                            ${escapeHtml(node.uptime_in_days)} 天
                         </td>
                     </tr>
                 `;
@@ -564,7 +585,7 @@
                     noResultsElement.id = 'no-results-message';
                     noResultsElement.innerHTML = `
                         <i class="fa fa-info-circle mr-2"></i>
-                        未找到匹配 "${keyword}" 的节点组或节点
+                        未找到匹配 "${escapeHtml(keyword)}" 的节点组或节点
                     `;
                     nodesContainer.appendChild(noResultsElement);
                 } else {
